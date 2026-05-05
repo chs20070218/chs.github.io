@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>数字展销平台-春韵</title>
+    <link rel="stylesheet" href="CSS/lab4-2503-120-index.css">
+</head>
+<body>
+    <header id="header">
+        <div class="logo">
+             <p>《线上网站》</p>
+        </div>
+        <nav class="nav-menu">
+            <ul>
+                <li><a href="#">首页</a></li>
+                <li><a href="#">图书分类</a></li>
+                <li><a href="#">热门推荐</a></li>
+                <li><a href="#">新书上市</a></li>
+            </ul>
+        </nav>
+        <div style="clear: both;"></div>
+    </header>
+
+    <!-- LAB3 登录注册模块 保留 -->
+    <div class="login-wrap">
+        <div class="login-box">
+            <div class="panel" id="loginPanel">
+                <h2>用户登录</h2>
+                <input type="text" id="loginUser" placeholder="请输入用户名">
+                <input type="password" id="loginPwd" placeholder="请输入密码">
+                <div class="btn-group">
+                    <button onclick="userLogin()">登录</button>
+                    <button onclick="showRegister()">去注册</button>
+                </div>
+                <p id="loginMsg"></p>
+            </div>
+            <div class="panel hide" id="registerPanel">
+                <h2>用户注册</h2>
+                <input type="text" id="regUser" placeholder="请输入用户名">
+                <input type="password" id="regPwd" placeholder="请输入密码">
+                <div class="btn-group">
+                    <button onclick="userRegister()">注册</button>
+                    <button onclick="showLogin()">返回登录</button>
+                </div>
+                <p id="regMsg"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lab2 原有主体内容 完整保留 -->
+    <div class="container">
+        <aside class="left-bar">
+            <h3>图书分类</h3>
+            <ul>
+                <li><a href="#">术数</a></li>
+                <li><a href="#">科技计算机</a></li>
+                <li><a href="#">物理学</a></li>
+            </ul>
+        </aside>
+        <main class="main-content">
+            <section class="book-show">
+                <h3>图书展示</h3>
+                <div class="book-list">
+                    <div class="book-item hover-item">
+                        <img src="img/img1.jpg" alt="图书" class="book-img">
+                        <p>《高数》</p>
+                    </div>
+                    <div class="book-item hover-item">
+                        <img src="img/img2.jpg" alt="图书" class="book-img">
+                        <p>《网页设计基础与实践》</p>
+                    </div>
+                    <div class="book-item">
+                        <img src="img/img3.jpg" alt="图书" class="book-img">
+                        <p>《大学物理学》</p>
+                    </div>
+                </div>
+                <div style="clear: both;"></div>
+            </section>
+            <section class="hot-recommend">
+                <h3>热门推荐</h3>
+                <div class="hot-list">
+                    <div class="hot-item">畅销图书1</div>
+                    <div class="hot-item">畅销图书2</div>
+                    <div class="hot-item">畅销图书3</div>
+                </div>
+                <div style="clear: both;"></div>
+            </section>
+            <section class="new-book">
+                <h3>新书上市</h3>
+                <table border="1" cellpadding="10" cellspacing="0">
+                    <tr>
+                        <th>书名</th>
+                        <th>作者</th>
+                        <th>价格</th>
+                    </tr>
+                    <tr>
+                        <td>《高数》</td>
+                        <td>冯本熠</td>
+                        <td>¥49.9</td>
+                    </tr>
+                    <tr>
+                        <td>《网页设计基础与实践》</td>
+                        <td>陈德睿</td>
+                        <td>¥39.9</td>
+                    </tr>
+                    <tr>
+                        <td>《大学物理学》</td>
+                        <td>褚红赛</td>
+                        <td>¥59.9</td>
+                    </tr>
+                </table>
+            </section>
+        </main>
+        <aside class="right-bar">
+            <h3>促销信息</h3>
+            <p>满99减20</p>
+            <p>新书8折</p>
+        </aside>
+        <div style="clear: both;"></div>
+    </div>
+
+    <!-- LAB3 JS 完整保留 -->
+    <script>
+        function showLogin() {
+            document.getElementById("loginPanel").classList.remove("hide");
+            document.getElementById("registerPanel").classList.add("hide");
+        }
+        function showRegister() {
+            document.getElementById("loginPanel").classList.add("hide");
+            document.getElementById("registerPanel").classList.remove("hide");
+        }
+        function userRegister() {
+            let username = document.getElementById("regUser").value.trim();
+            let pwd = document.getElementById("regPwd").value.trim();
+            let msg = document.getElementById("regMsg");
+            if (!username || !pwd) {
+                msg.style.color = "red";
+                msg.innerText = "用户名和密码不能为空！";
+                return;
+            }
+            if (localStorage.getItem(username)) {
+                msg.style.color = "red";
+                msg.innerText = "该用户已注册！";
+                return;
+            }
+            localStorage.setItem(username, pwd);
+            msg.style.color = "green";
+            msg.innerText = "注册成功！即将跳转到登录...";
+            setTimeout(showLogin, 1200);
+        }
+        function userLogin() {
+            let username = document.getElementById("loginUser").value.trim();
+            let pwd = document.getElementById("loginPwd").value.trim();
+            let msg = document.getElementById("loginMsg");
+            if (!username || !pwd) {
+                msg.style.color = "red";
+                msg.innerText = "请输入账号和密码！";
+                return;
+            }
+            let localPwd = localStorage.getItem(username);
+            if (localPwd && localPwd === pwd) {
+                msg.style.color = "green";
+                msg.innerText = "登录成功！欢迎你：" + username;
+            } else {
+                msg.style.color = "red";
+                msg.innerText = "用户名或密码错误！";
+            }
+        }
+    </script>
+</body>
+</html>
