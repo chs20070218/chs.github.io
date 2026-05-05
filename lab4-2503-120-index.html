@@ -21,7 +21,6 @@
         <div style="clear: both;"></div>
     </header>
 
-    <!-- LAB3 登录注册模块 保留 -->
     <div class="login-wrap">
         <div class="login-box">
             <div class="panel" id="loginPanel">
@@ -34,6 +33,7 @@
                 </div>
                 <p id="loginMsg"></p>
             </div>
+
             <div class="panel hide" id="registerPanel">
                 <h2>用户注册</h2>
                 <input type="text" id="regUser" placeholder="请输入用户名">
@@ -47,7 +47,6 @@
         </div>
     </div>
 
-    <!-- Lab2 原有主体内容 完整保留 -->
     <div class="container">
         <aside class="left-bar">
             <h3>图书分类</h3>
@@ -57,25 +56,28 @@
                 <li><a href="#">物理学</a></li>
             </ul>
         </aside>
+
         <main class="main-content">
             <section class="book-show">
                 <h3>图书展示</h3>
                 <div class="book-list">
                     <div class="book-item hover-item">
-                        <img src="img/img1.jpg" alt="图书" class="book-img">
+                        <img src="img/img1.jpg" alt="图书">
                         <p>《高数》</p>
+                        <div class="book-info">图书简介</div>
                     </div>
                     <div class="book-item hover-item">
-                        <img src="img/img2.jpg" alt="图书" class="book-img">
+                        <img src="img/img2.jpg" alt="图书">
                         <p>《网页设计基础与实践》</p>
+                        <div class="book-info">图书简介</div>
                     </div>
                     <div class="book-item">
-                        <img src="img/img3.jpg" alt="图书" class="book-img">
+                        <img src="img/img3.jpg" alt="图书">
                         <p>《大学物理学》</p>
                     </div>
                 </div>
-                <div style="clear: both;"></div>
             </section>
+
             <section class="hot-recommend">
                 <h3>热门推荐</h3>
                 <div class="hot-list">
@@ -83,11 +85,11 @@
                     <div class="hot-item">畅销图书2</div>
                     <div class="hot-item">畅销图书3</div>
                 </div>
-                <div style="clear: both;"></div>
             </section>
+
             <section class="new-book">
                 <h3>新书上市</h3>
-                <table border="1" cellpadding="10" cellspacing="0">
+                <table>
                     <tr>
                         <th>书名</th>
                         <th>作者</th>
@@ -111,6 +113,7 @@
                 </table>
             </section>
         </main>
+
         <aside class="right-bar">
             <h3>促销信息</h3>
             <p>满99减20</p>
@@ -119,7 +122,6 @@
         <div style="clear: both;"></div>
     </div>
 
-    <!-- LAB3 JS 完整保留 -->
     <script>
         function showLogin() {
             document.getElementById("loginPanel").classList.remove("hide");
@@ -129,6 +131,7 @@
             document.getElementById("loginPanel").classList.add("hide");
             document.getElementById("registerPanel").classList.remove("hide");
         }
+
         function userRegister() {
             let username = document.getElementById("regUser").value.trim();
             let pwd = document.getElementById("regPwd").value.trim();
@@ -148,6 +151,7 @@
             msg.innerText = "注册成功！即将跳转到登录...";
             setTimeout(showLogin, 1200);
         }
+
         function userLogin() {
             let username = document.getElementById("loginUser").value.trim();
             let pwd = document.getElementById("loginPwd").value.trim();
