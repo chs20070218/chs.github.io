@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <title>数字展销平台-春韵</title>
-    <!-- 引入LAB3 CSS文件 -->
     <link rel="stylesheet" href="CSS/lab3-2503-120-index.css">
 </head>
 <body>
@@ -22,11 +21,9 @@
         <div style="clear: both;"></div>
     </header>
 
-    <!-- ===================== LAB3 登录注册模块（父相子绝，无跳转） ===================== -->
+    <!-- LAB3 登录注册 -->
     <div class="login-wrap">
-        <!-- 父相：相对定位 -->
         <div class="login-box">
-            <!-- 登录面板（默认显示） -->
             <div class="panel" id="loginPanel">
                 <h2>用户登录</h2>
                 <input type="text" id="loginUser" placeholder="请输入用户名">
@@ -38,7 +35,6 @@
                 <p id="loginMsg"></p>
             </div>
 
-            <!-- 注册面板（默认隐藏，子绝） -->
             <div class="panel hide" id="registerPanel">
                 <h2>用户注册</h2>
                 <input type="text" id="regUser" placeholder="请输入用户名">
@@ -61,6 +57,7 @@
                 <li><a href="#">物理学</a></li>
             </ul>
         </aside>
+
         <main class="main-content">
             <section class="book-show">
                 <h3>图书展示</h3>
@@ -68,42 +65,56 @@
                     <div class="book-item hover-item">
                         <img src="img/img1.jpg" alt="图书">
                         <p>《高数》</p>
+                        <div class="book-info">图书简介</div>
                     </div>
                     <div class="book-item hover-item">
                         <img src="img/img2.jpg" alt="图书">
                         <p>《网页设计基础与实践》</p>
+                        <div class="book-info">图书简介</div>
                     </div>
                     <div class="book-item">
                         <img src="img/img3.jpg" alt="图书">
                         <p>《大学物理学》</p>
                     </div>
                 </div>
-                <div style="clear: both;"></div>
             </section>
+
             <section class="hot-recommend">
                 <h3>热门推荐</h3>
                 <div class="hot-list">
                     <div class="hot-item">畅销图书1</div>
                     <div class="hot-item">畅销图书2</div>
+                    <div class="hot-item">畅销图书3</div>
                 </div>
-                <div style="clear: both;"></div>
             </section>
+
             <section class="new-book">
                 <h3>新书上市</h3>
-                <table border="1" cellpadding="10" cellspacing="0">
+                <table>
                     <tr>
                         <th>书名</th>
                         <th>作者</th>
                         <th>价格</th>
                     </tr>
                     <tr>
-                        <td>《Web前端开发》</td>
+                        <td>《高数》</td>
                         <td>冯本熠</td>
                         <td>¥49.9</td>
+                    </tr>
+                    <tr>
+                        <td>《网页设计基础与实践》</td>
+                        <td>陈德睿</td>
+                        <td>¥39.9</td>
+                    </tr>
+                    <tr>
+                        <td>《大学物理学》</td>
+                        <td>褚红赛</td>
+                        <td>¥59.9</td>
                     </tr>
                 </table>
             </section>
         </main>
+
         <aside class="right-bar">
             <h3>促销信息</h3>
             <p>满99减20</p>
@@ -113,23 +124,19 @@
     </div>
 
     <script>
-        // 显示登录面板
         function showLogin() {
             document.getElementById("loginPanel").classList.remove("hide");
             document.getElementById("registerPanel").classList.add("hide");
         }
-        // 显示注册面板
         function showRegister() {
             document.getElementById("loginPanel").classList.add("hide");
             document.getElementById("registerPanel").classList.remove("hide");
         }
 
-        // 注册功能：保存到HTML5本地存储 localStorage
         function userRegister() {
             let username = document.getElementById("regUser").value.trim();
             let pwd = document.getElementById("regPwd").value.trim();
             let msg = document.getElementById("regMsg");
-
             if (!username || !pwd) {
                 msg.style.color = "red";
                 msg.innerText = "用户名和密码不能为空！";
@@ -146,12 +153,10 @@
             setTimeout(showLogin, 1200);
         }
 
-        // 登录功能：本地存储比对验证
         function userLogin() {
             let username = document.getElementById("loginUser").value.trim();
             let pwd = document.getElementById("loginPwd").value.trim();
             let msg = document.getElementById("loginMsg");
-
             if (!username || !pwd) {
                 msg.style.color = "red";
                 msg.innerText = "请输入账号和密码！";
@@ -166,6 +171,3 @@
                 msg.innerText = "用户名或密码错误！";
             }
         }
-    </script>
-</body>
-</html>
