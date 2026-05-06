@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>数字展销平台 · 3D实验5</title>
+    <link rel="stylesheet" href="CSS/lab5-班号-学号后3位-index.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <!-- 头部导航（3D过渡） -->
+    <header id="header">
+        <div class="logo">
+            <img src="img/logo.png" alt="logo" onerror="this.style.display='none'">
+            <p>《3D书境》</p>
+        </div>
+        <nav class="nav-menu">
+            <ul>
+                <li><a href="#">首页</a></li>
+                <li><a href="#">3D书架</a></li>
+                <li><a href="#">热门环形</a></li>
+                <li><a href="#">新书上架</a></li>
+            </ul>
+        </nav>
+        <div class="header-actions">
+            <button class="icon-btn"><i class="fas fa-search"></i></button>
+            <button class="icon-btn"><i class="fas fa-shopping-cart"></i></button>
+            <div id="userArea">
+                <button class="login-btn-top" onclick="openDialog('login')">登 录</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 登录注册遮罩 -->
+    <div class="mask" id="mask">
+        <div class="dialog-box" id="loginDialog">
+            <button class="close-btn" onclick="closeDialog()">&times;</button>
+            <h2>用户登录</h2>
+            <div class="form-group"><label>用户名</label><input type="text" id="loginUsername" placeholder="请输入用户名"></div>
+            <div class="form-group"><label>密码</label><input type="password" id="loginPassword" placeholder="请输入密码"></div>
+            <p class="error-msg" id="loginError"></p><p class="success-msg" id="loginSuccess"></p>
+            <button class="submit-btn" onclick="handleLogin()">登 录</button>
+            <p class="switch-text">还没有账号？<a onclick="switchToRegister()">去注册</a></p>
+        </div>
+        <div class="dialog-box" id="registerDialog" style="display:none;">
+            <button class="close-btn" onclick="closeDialog()">&times;</button>
+            <h2>用户注册</h2>
+            <div class="form-group"><label>用户名</label><input type="text" id="regUsername"></div>
+            <div class="form-group"><label>密码</label><input type="password" id="regPassword"></div>
+            <div class="form-group"><label>确认密码</label><input type="password" id="regConfirm"></div>
+            <p class="error-msg" id="regError"></p><p class="success-msg" id="regSuccess"></p>
+            <button class="submit-btn" onclick="handleRegister()">注 册</button>
+            <p class="switch-text">已有账号？<a onclick="switchToLogin()">去登录</a></p>
+        </div>
+    </div>
+
+    <div class="container">
+        <aside class="left-bar">
+            <h3>图书分类</h3>
+            <ul>
+                <li><a href="#">术数</a></li>
+                <li><a href="#">科技</a></li>
+                <li><a href="#">物理学</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <!-- 3D环形图书展示 -->
+            <section class="carousel-3d-section">
+                <div class="ring-container">
+                    <!-- 8张图片环形分布，从img4开始 -->
+                    <div class="ring-item"><img src="img/img4.jpg" alt="书1" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22140%22 height=%22180%22%3E%3Crect fill=%22%23444%22 width=%22140%22 height=%22180%22/%3E%3Ctext x=%2230%22 y=%22100%22 fill=%22%23ccc%22%3Eimg4%3C/text%3E%3C/svg%3E'"></div>
+                    <div class="ring-item"><img src="img/img5.jpg" alt="书2" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22140%22 height=%22180%22%3E%3Crect fill=%22%23444%22 width=%22140%22 height=%22180%22/%3E%3Ctext x=%2230%22 y=%22100%22 fill=%22%23ccc%22%3Eimg5%3C/text%3E%3C/svg%3E'"></div>
+                    <div class="ring-item"><img src="img/img6.jpg" alt="书3" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22140%22 height=%22180%22%3E%3Crect fill=%22%23444%22 width=%22140%22 height=%22180%22/%3E%3Ctext x=%2230%22 y=%22100%22 fill=%22%23ccc%22%3Eimg6%3C/text%3E%3C/svg%3E'"></div>
+                    <div class="ring-item"><img src="img/img7.jpg" alt="书4" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22140%22 height=%22180%22%3E%3Crect fill=%22%23444%22 width=%22140%22 height=%22180%22/%3E%3Ctext x=%2230%22 y=%22100%22 fill=%22%23ccc%22%3Eimg7%3C/text%3E%3C/svg%3E'"></div>
+                    <div class="ring-item"><img src="img/img8.jpg" alt="书5" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22140%22 height=%22180%22%3E%3Crect fill=%22%23444%22 width=%22140%22 height=%22180%22/%3E%3Ctext x=%2230%22 y=%22100%22 fill=%22%23ccc%22%3Eimg8%3C/text%3E%3C/svg%3E'"></div>
+                    <div class="ring-item"><img src="img/img9.jpg" alt="书6" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22140%22 height=%22180%22%3E%3Crect fill=%22%23444%22 width=%22140%22 height=%22180%22/%3E%3Ctext x=%2230%22 y=%22100%22 fill=%22%23ccc%22%3Eimg9%3C/text%3E%3C/svg%3E'"></div>
+                    <div class="ring-item"><img src="img/img10.jpg" alt="书7" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22140%22 height=%22180%22%3E%3Crect fill=%22%23444%22 width=%22140%22 height=%22180%22/%3E%3Ctext x=%2230%22 y=%22100%22 fill=%22%23ccc%22%3Eimg10%3C/text%3E%3C/svg%3E'"></div>
+                    <div class="ring-item"><img src="img/img11.jpg" alt="书8" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22140%22 height=%22180%22%3E%3Crect fill=%22%23444%22 width=%22140%22 height=%22180%22/%3E%3Ctext x=%2230%22 y=%22100%22 fill=%22%23ccc%22%3Eimg11%3C/text%3E%3C/svg%3E'"></div>
+                </div>
+            </section>
+
+            <!-- 3D翻转图书卡片 -->
+            <section class="flip-section">
+                <div class="flip-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front"><img src="img/img1.jpg" alt="高数" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22280%22%3E%3Crect fill=%22%234a6fa5%22 width=%22200%22 height=%22280%22/%3E%3Ctext x=%2250%22 y=%22150%22 fill=%22white%22%3E高数%3C/text%3E%3C/svg%3E'"></div>
+                        <div class="flip-card-back">
+                            <h4>《高等数学》</h4>
+                            <p>作者：冯本熠</p>
+                            <div class="rating">★★★★☆ 4.5</div>
+                            <div class="price">¥19.9</div>
+                            <p class="summary">经典数学教材，深入浅出讲解微积分、线性代数等核心内容。</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="flip-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front"><img src="img/img2.jpg" alt="网页设计" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22280%22%3E%3Crect fill=%22%236b4e71%22 width=%22200%22 height=%22280%22/%3E%3Ctext x=%2230%22 y=%22150%22 fill=%22white%22%3E网页设计%3C/text%3E%3C/svg%3E'"></div>
+                        <div class="flip-card-back">
+                            <h4>《网页设计基础》</h4>
+                            <p>作者：陈德睿</p>
+                            <div class="rating">★★★★☆ 4.3</div>
+                            <div class="price">¥39.9</div>
+                            <p class="summary">从HTML到CSS，全面掌握现代前端开发必备技能。</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="flip-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front"><img src="img/img3.jpg" alt="大学物理" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22280%22%3E%3Crect fill=%22%233d5a5c%22 width=%22200%22 height=%22280%22/%3E%3Ctext x=%2230%22 y=%22150%22 fill=%22white%22%3E大学物理%3C/text%3E%3C/svg%3E'"></div>
+                        <div class="flip-card-back">
+                            <h4>《大学物理学》</h4>
+                            <p>作者：褚红赛</p>
+                            <div class="rating">★★★★★ 4.8</div>
+                            <div class="price">¥59.9</div>
+                            <p class="summary">涵盖力学、电磁学、光学等基础物理，适合本科学习。</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 新书上市表格 -->
+            <section class="new-book">
+                <h3>📚 新书上市</h3>
+                <table>
+                    <tr><th>书名</th><th>作者</th><th>价格</th></tr>
+                    <tr><td>《高数》</td><td>冯本熠</td><td>¥19.9</td></tr>
+                    <tr><td>《网页设计基础与实践》</td><td>陈德睿</td><td>¥39.9</td></tr>
+                    <tr><td>《大学物理学》</td><td>褚红赛</td><td>¥59.9</td></tr>
+                </table>
+            </section>
+        </main>
+
+        <aside class="right-bar">
+            <h3>促销信息</h3>
+            <p>满99减20</p>
+            <p>新书8折</p>
+        </aside>
+    </div>
+
+    <!-- 3D页脚 -->
+    <footer class="footer-3d">
+        <div class="social-icons">
+            <a href="#" class="social-icon"><i class="fab fa-weixin"></i></a>
+            <a href="#" class="social-icon"><i class="fab fa-weibo"></i></a>
+            <a href="#" class="social-icon"><i class="fab fa-github"></i></a>
+            <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+        </div>
+        <div class="copyright">© 2025 数字图书展销平台 · 3D实验室 版权所有</div>
+    </footer>
+
+    <script>
+        // ========== 对话框逻辑（与实验3相同） ==========
+        function openDialog(type) {
+            document.getElementById('mask').classList.add('show');
+            if (type === 'login') {
+                document.getElementById('loginDialog').style.display = 'block';
+                document.getElementById('registerDialog').style.display = 'none';
+            } else {
+                document.getElementById('loginDialog').style.display = 'none';
+                document.getElementById('registerDialog').style.display = 'block';
+            }
+            clearMessages();
+        }
+        function closeDialog() { document.getElementById('mask').classList.remove('show'); clearMessages(); clearInputs(); }
+        function switchToRegister() { document.getElementById('loginDialog').style.display = 'none'; document.getElementById('registerDialog').style.display = 'block'; clearMessages(); clearInputs(); }
+        function switchToLogin() { document.getElementById('registerDialog').style.display = 'none'; document.getElementById('loginDialog').style.display = 'block'; clearMessages(); clearInputs(); }
+        function clearMessages() { ['loginError','loginSuccess','regError','regSuccess'].forEach(id => document.getElementById(id).style.display='none'); }
+        function clearInputs() { ['loginUsername','loginPassword','regUsername','regPassword','regConfirm'].forEach(id => document.getElementById(id).value=''); }
+
+        // 本地存储
+        function getUsers() { return JSON.parse(localStorage.getItem('book_users') || '{}'); }
+        function saveUsers(users) { localStorage.setItem('book_users', JSON.stringify(users)); }
+        function setCurrentUser(username) { localStorage.setItem('book_current_user', username); }
+        function getCurrentUser() { return localStorage.getItem('book_current_user'); }
+        function logout() { localStorage.removeItem('book_current_user'); updateUserArea(); }
+
+        function handleRegister() {
+            const username = document.getElementById('regUsername').value.trim();
+            const password = document.getElementById('regPassword').value;
+            const confirm = document.getElementById('regConfirm').value;
+            document.getElementById('regError').style.display='none';
+            document.getElementById('regSuccess').style.display='none';
+            if (!username || !password || !confirm) { document.getElementById('regError').textContent='请填写所有字段'; document.getElementById('regError').style.display='block'; return; }
+            if (username.length<3) { document.getElementById('regError').textContent='用户名至少3个字符'; document.getElementById('regError').style.display='block'; return; }
+            if (password.length<4) { document.getElementById('regError').textContent='密码至少4位'; document.getElementById('regError').style.display='block'; return; }
+            if (password !== confirm) { document.getElementById('regError').textContent='两次密码不一致'; document.getElementById('regError').style.display='block'; return; }
+            const users = getUsers();
+            if (users[username]) { document.getElementById('regError').textContent='用户名已存在'; document.getElementById('regError').style.display='block'; return; }
+            users[username] = { password, time: new Date().toISOString() };
+            saveUsers(users);
+            document.getElementById('regSuccess').textContent='注册成功！即将跳转登录';
+            document.getElementById('regSuccess').style.display='block';
+            setTimeout(() => { switchToLogin(); document.getElementById('loginUsername').value = username; }, 1500);
+        }
+
+        function handleLogin() {
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            document.getElementById('loginError').style.display='none';
+            document.getElementById('loginSuccess').style.display='none';
+            if (!username || !password) { document.getElementById('loginError').textContent='请输入用户名和密码'; document.getElementById('loginError').style.display='block'; return; }
+            const users = getUsers();
+            if (!users[username]) { document.getElementById('loginError').textContent='用户不存在'; document.getElementById('loginError').style.display='block'; return; }
+            if (users[username].password !== password) { document.getElementById('loginError').textContent='密码错误'; document.getElementById('loginError').style.display='block'; return; }
+            document.getElementById('loginSuccess').textContent='登录成功！欢迎，'+username;
+            document.getElementById('loginSuccess').style.display='block';
+            setCurrentUser(username);
+            setTimeout(() => { closeDialog(); updateUserArea(); }, 1000);
+        }
+
+        function updateUserArea() {
+            const userArea = document.getElementById('userArea');
+            const currentUser = getCurrentUser();
+            if (currentUser) {
+                userArea.innerHTML = `<div class="user-info-top"><span class="user-name">👤 ${currentUser}</span><button class="logout-btn" onclick="logout()">退出</button></div>`;
+            } else {
+                userArea.innerHTML = `<button class="login-btn-top" onclick="openDialog('login')">登 录</button>`;
+            }
+        }
+
+        document.getElementById('mask').addEventListener('click', e => { if (e.target === document.getElementById('mask')) closeDialog(); });
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDialog(); });
+        window.onload = function() {
+            updateUserArea();
+            const users = getUsers();
+            if (!users['chs2007']) { users['chs2007'] = { password: '2007', time: new Date().toISOString() }; saveUsers(users); }
+        };
+    </script>
+</body>
+</html>
