@@ -2,12 +2,390 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>数字展销平台 · 3D实验5</title>
-    <link rel="stylesheet" href="CSS/lab5-班号-学号后3位-index.css">
+    <title>数字展销平台 · 3D实验5 完整融合版</title>
+    <!-- 引入图标库 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* ================================================================
+           = 全局重置与基础变量
+           ================================================================ */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: "微软雅黑", "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: radial-gradient(ellipse at center, #1a1a2e 0%, #0f0f23 100%);
+            color: #ddd;
+            min-height: 100vh;
+            overflow-x: hidden;
+            perspective: 1000px;     /* 为3D页脚等全局元素提供透视 */
+        }
+
+        /* 全局过渡增强 - 几乎所有交互元素都享受平滑过渡 */
+        a, button, input, .nav-menu ul li a, .icon-btn, .login-btn-top,
+        .flip-card, .ring-item, .hot-item, .social-icon, .book-item, .carousel-slide {
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        /* ================================================================
+           = 头部导航 (实验4样式 + 3D过渡增强)
+           ================================================================ */
+        #header {
+            position: fixed; top: 0; left: 0; width: 100%; height: 80px;
+            background: rgba(10, 10, 30, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255,255,255,0.15);
+            padding: 10px 40px;
+            z-index: 999;
+            display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        .logo { display: flex; align-items: center; gap: 15px; }
+        .logo img { width: 50px; height: 60px; object-fit: contain; filter: drop-shadow(0 0 10px #00a2ff); }
+        .logo p { font-size: 24px; font-weight: 700; color: #fff; letter-spacing: 4px; text-transform: uppercase; }
+
+        /* 导航菜单项背景滑动效果 */
+        .nav-menu ul { list-style: none; display: flex; gap: 35px; }
+        .nav-menu ul li a {
+            text-decoration: none; color: #bbb; font-size: 17px;
+            padding: 10px 18px; border-radius: 8px;
+            position: relative; overflow: hidden;
+            display: inline-block;
+            transition: color 0.3s, background 0.3s, transform 0.3s;
+        }
+        .nav-menu ul li a::before {
+            content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0,162,255,0.3), transparent);
+            transition: left 0.5s ease;
+            z-index: 0;
+        }
+        .nav-menu ul li a:hover::before { left: 100%; }
+        .nav-menu ul li a:hover {
+            color: #fff; background: rgba(0,162,255,0.15);
+            transform: translateY(-3px) scale(1.05);
+        }
+
+        /* 右侧图标与登录按钮 */
+        .header-actions { display: flex; align-items: center; gap: 25px; }
+        /* 购物车、搜索图标 (实验4：旋转动画，实验5增强3D旋转) */
+        .icon-btn {
+            background: none; border: none; font-size: 24px; color: #ccc;
+            cursor: pointer; width: 46px; height: 46px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            transition: transform 0.6s ease, color 0.3s, background 0.3s, box-shadow 0.3s;
+        }
+        .icon-btn:hover {
+            transform: rotateY(360deg);     /* 3D Y轴旋转 */
+            color: #00a2ff;
+            background: rgba(255,255,255,0.1);
+            box-shadow: 0 0 15px rgba(0,162,255,0.5);
+        }
+
+        /* 登录按钮 (实验4：渐变缩放，实验5增强立体阴影) */
+        .login-btn-top {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #00a2ff, #0066ff);
+            color: #fff; border: none; border-radius: 30px;
+            cursor: pointer; font-size: 16px; font-weight: bold;
+            letter-spacing: 1px;
+            box-shadow: 0 5px 20px rgba(0,162,255,0.5);
+            transition: all 0.4s ease;
+            position: relative; overflow: hidden;
+        }
+        .login-btn-top:hover {
+            transform: scale(1.1) translateY(-3px);
+            box-shadow: 0 12px 30px rgba(0,162,255,0.9);
+            background: linear-gradient(135deg, #0088ff, #0040cc);
+        }
+        .user-info-top { display: flex; align-items: center; gap: 10px; }
+        .user-name { color: #00a2ff; font-weight: bold; font-size: 16px; }
+        .logout-btn {
+            padding: 8px 20px; background: #dc3545; color: #fff;
+            border: none; border-radius: 20px; cursor: pointer; font-size: 14px;
+            transition: all 0.3s; box-shadow: 0 4px 10px rgba(220,53,69,0.4);
+        }
+        .logout-btn:hover { background: #ff4d5a; transform: scale(1.05); box-shadow: 0 8px 20px rgba(255,77,90,0.6); }
+
+        /* ================================================================
+           = 登录/注册对话框 (实验3基础，实验5添加3D弹出动画)
+           ================================================================ */
+        .mask {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.75); z-index: 1000;
+            justify-content: center; align-items: center;
+            backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+        }
+        .mask.show { display: flex; }
+        .dialog-box {
+            position: relative; width: 440px; background: rgba(255,255,255,0.96);
+            border-radius: 25px; padding: 40px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+            animation: dialogPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-origin: center;
+        }
+        @keyframes dialogPop {
+            from { transform: translateY(-80px) rotateX(25deg) scale(0.7); opacity: 0; }
+            to { transform: translateY(0) rotateX(0) scale(1); opacity: 1; }
+        }
+        .dialog-box h2 { text-align: center; margin-bottom: 25px; color: #16213e; font-size: 28px; }
+        .close-btn {
+            position: absolute; top: 15px; right: 20px; font-size: 32px;
+            cursor: pointer; color: #888; background: none; border: none;
+            transition: color 0.3s, transform 0.4s;
+        }
+        .close-btn:hover { color: #333; transform: rotate(90deg) scale(1.2); }
+        .form-group { margin-bottom: 22px; }
+        .form-group label { display: block; margin-bottom: 8px; color: #333; font-weight: 600; font-size: 14px; }
+        .form-group input {
+            width: 100%; padding: 14px 18px; border: 2px solid #e0e0e0; border-radius: 12px;
+            font-size: 16px; outline: none; background: #fff;
+            transition: border-color 0.3s, box-shadow 0.3s, transform 0.3s;
+        }
+        .form-group input:focus {
+            border-color: #00a2ff; box-shadow: 0 0 18px rgba(0,162,255,0.4);
+            transform: scale(1.02);
+        }
+        .submit-btn {
+            width: 100%; padding: 16px;
+            background: linear-gradient(135deg, #00a2ff, #0066ff);
+            color: #fff; border: none; border-radius: 12px; font-size: 18px; font-weight: bold;
+            cursor: pointer; margin-top: 15px; letter-spacing: 2px;
+            box-shadow: 0 8px 20px rgba(0,162,255,0.4);
+            transition: all 0.4s;
+        }
+        .submit-btn:hover { background: linear-gradient(135deg, #0088ff, #0040cc); transform: translateY(-3px); box-shadow: 0 14px 30px rgba(0,162,255,0.7); }
+        .switch-text { text-align: center; margin-top: 18px; color: #666; font-size: 15px; }
+        .switch-text a { color: #007bff; cursor: pointer; text-decoration: none; font-weight: 600; }
+        .error-msg, .success-msg { font-size: 14px; text-align: center; margin-top: 10px; display: none; }
+        .error-msg { color: #dc3545; } .success-msg { color: #28a745; }
+
+        /* ================================================================
+           = 主体布局 (沿用实验4结构)
+           ================================================================ */
+        .container {
+            width: 1300px; max-width: 95%; margin: 100px auto 0;
+            padding-bottom: 120px;
+            display: flex; flex-wrap: wrap; gap: 25px;
+        }
+        .left-bar {
+            width: 220px; background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.15);
+            padding: 25px; border-radius: 20px;
+            height: fit-content; position: sticky; top: 100px;
+        }
+        .left-bar h3 { color: #fff; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 10px; font-size: 20px; }
+        .left-bar ul li { list-style: none; margin: 16px 0; }
+        .left-bar ul li a { text-decoration: none; color: #ccc; font-size: 16px; display: block; padding: 6px 10px; border-radius: 6px; transition: all 0.3s; }
+        .left-bar ul li a:hover { color: #00a2ff; background: rgba(0,162,255,0.1); }
+        .main-content { flex: 1; min-width: 700px; }
+
+        /* ================================================================
+           = 轮播图 (实验4：垂直向上切换)
+           ================================================================ */
+        .carousel-section {
+            width: 100%; height: 270px; border-radius: 16px; overflow: hidden;
+            margin-bottom: 30px; position: relative; background: #222;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.5);
+        }
+        .carousel-container { width: 100%; height: 100%; position: relative; }
+        .carousel-slide {
+            position: absolute; width: 100%; height: 100%;
+            background-size: cover; background-position: center;
+            display: flex; align-items: flex-end; padding: 25px;
+            color: white; font-size: 2rem; font-weight: bold;
+            text-shadow: 2px 2px 15px rgba(0,0,0,0.8);
+            animation: verticalSlide 12s infinite ease-in-out;
+        }
+        .slide1 { background-color: #4a6fa5; animation-delay: 0s; }
+        .slide2 { background-color: #6b4e71; animation-delay: 4s; }
+        .slide3 { background-color: #3d5a5c; animation-delay: 8s; }
+        @keyframes verticalSlide {
+            0%   { transform: translateY(100%); opacity: 0; }
+            5%   { transform: translateY(0); opacity: 1; }
+            28%  { transform: translateY(0); opacity: 1; }
+            33%  { transform: translateY(-100%); opacity: 0; }
+            100% { transform: translateY(-100%); opacity: 0; }
+        }
+
+        /* ================================================================
+           = 3D环形图书展示 (实验5新增核心)
+           ================================================================ */
+        .ring-section {
+            width: 100%; height: 480px; perspective: 1400px;
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 45px;
+        }
+        .ring-container {
+            position: relative; width: 350px; height: 350px;
+            transform-style: preserve-3d;
+            animation: autoRotate 25s infinite linear;
+        }
+        /* 鼠标悬停暂停旋转，模拟鼠标控制 */
+        .ring-container:hover { animation-play-state: paused; }
+        @keyframes autoRotate { from { transform: rotateY(0deg); } to { transform: rotateY(360deg); } }
+        .ring-item {
+            position: absolute; width: 130px; height: 170px;
+            left: 50%; top: 50%; margin-left: -65px; margin-top: -85px;
+            border-radius: 15px; overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.7);
+            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.6s;
+            backface-visibility: hidden;
+        }
+        /* 12张图书环形均匀分布 (360/12=30度间隔) */
+        .ring-item:nth-child(1) { transform: rotateY(0deg) translateZ(340px); }
+        .ring-item:nth-child(2) { transform: rotateY(30deg) translateZ(340px); }
+        .ring-item:nth-child(3) { transform: rotateY(60deg) translateZ(340px); }
+        .ring-item:nth-child(4) { transform: rotateY(90deg) translateZ(340px); }
+        .ring-item:nth-child(5) { transform: rotateY(120deg) translateZ(340px); }
+        .ring-item:nth-child(6) { transform: rotateY(150deg) translateZ(340px); }
+        .ring-item:nth-child(7) { transform: rotateY(180deg) translateZ(340px); }
+        .ring-item:nth-child(8) { transform: rotateY(210deg) translateZ(340px); }
+        .ring-item:nth-child(9) { transform: rotateY(240deg) translateZ(340px); }
+        .ring-item:nth-child(10) { transform: rotateY(270deg) translateZ(340px); }
+        .ring-item:nth-child(11) { transform: rotateY(300deg) translateZ(340px); }
+        .ring-item:nth-child(12) { transform: rotateY(330deg) translateZ(340px); }
+        .ring-item:hover {
+            box-shadow: 0 35px 70px rgba(0,162,255,0.9);
+            transform: scale(1.15) translateZ(390px);   /* 悬停突出 */
+        }
+        .ring-item img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* ================================================================
+           = 3D翻转卡片区 (实验5核心，替代原图书展示的静态封面)
+           ================================================================ */
+        .flip-section {
+            display: flex; gap: 25px; flex-wrap: wrap; justify-content: center;
+            margin-bottom: 45px;
+        }
+        .flip-section h3 { width: 100%; color: #fff; margin-bottom: 15px; font-size: 24px; font-weight: 600; }
+        .flip-card {
+            width: 200px; height: 290px; perspective: 1200px;
+        }
+        .flip-card-inner {
+            position: relative; width: 100%; height: 100%;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.455, 0.03, 0.515, 0.955);
+        }
+        .flip-card:hover .flip-card-inner { transform: rotateY(180deg); }
+        .flip-card-front, .flip-card-back {
+            position: absolute; width: 100%; height: 100%;
+            backface-visibility: hidden;
+            border-radius: 16px; overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+        }
+        .flip-card-front img { width: 100%; height: 100%; object-fit: cover; }
+        .flip-card-back {
+            background: linear-gradient(145deg, #1e2a3a, #101824);
+            color: #fff; padding: 30px 20px;
+            transform: rotateY(180deg);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            text-align: center;
+        }
+        .flip-card-back h4 { font-size: 22px; margin-bottom: 15px; color: #00a2ff; }
+        .flip-card-back p { margin: 6px 0; font-size: 15px; opacity: 0.9; }
+        .flip-card-back .price { font-size: 28px; font-weight: bold; color: #ffd700; margin: 10px 0; }
+        .flip-card-back .rating { color: #ffaa00; margin: 10px 0; font-size: 18px; letter-spacing: 2px; }
+        .flip-card-back .summary { font-size: 13px; opacity: 0.75; margin-top: 12px; line-height: 1.5; }
+
+        /* ================================================================
+           = 热门推荐 (实验4动效：右移+阴影加深+放大)
+           ================================================================ */
+        .hot-recommend { margin-bottom: 45px; }
+        .hot-recommend h3 {
+            color: #fff; margin-bottom: 20px; padding-bottom: 12px;
+            border-bottom: 2px solid #00a2ff; font-size: 24px;
+        }
+        .hot-list { display: flex; gap: 25px; flex-wrap: wrap; }
+        .hot-item {
+            width: 220px; background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+            border: 1px solid rgba(255,255,255,0.15);
+            padding: 18px; text-align: center; border-radius: 16px;
+            cursor: pointer;
+            transition: transform 0.4s ease, box-shadow 0.4s ease;
+            box-shadow: 0 12px 25px rgba(0,0,0,0.4);
+        }
+        .hot-item:hover {
+            transform: translateX(15px) scale(1.05);
+            box-shadow: 0 18px 40px rgba(0,162,255,0.5);
+        }
+        .hot-item img {
+            width: 100%; height: 200px; object-fit: cover;
+            border-radius: 12px; margin-bottom: 12px;
+        }
+        .hot-item p { margin-top: 8px; color: #ddd; font-weight: 600; font-size: 15px; }
+        .hot-item small { color: #aaa; display: block; margin-top: 6px; font-size: 13px; }
+
+        /* ================================================================
+           = 新书上市表格 (保留实验4样式)
+           ================================================================ */
+        .new-book-section { margin-bottom: 45px; }
+        .new-book-section h3 { color: #fff; margin-bottom: 20px; font-size: 24px; }
+        .new-book-table {
+            width: 100%; border-collapse: collapse;
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            border-radius: 16px; overflow: hidden;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+        }
+        .new-book-table th, .new-book-table td {
+            border: 1px solid rgba(255,255,255,0.1); padding: 16px;
+            text-align: center; color: #ddd; font-size: 15px;
+        }
+        .new-book-table th { background: rgba(0,162,255,0.3); color: #fff; font-size: 18px; font-weight: 600; }
+        .new-book-table tr { transition: background 0.3s, transform 0.3s; }
+        .new-book-table tr:hover {
+            background: rgba(255,255,255,0.2); transform: scale(1.02);
+        }
+
+        /* ================================================================
+           = 右侧促销栏 (保留)
+           ================================================================ */
+        .right-bar {
+            position: fixed; top: 100px; right: 25px; width: 220px;
+            background: rgba(255,255,255,0.06); backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.15);
+            padding: 25px; border-radius: 20px; color: #ccc;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+        .right-bar h3 { color: #ffd700; margin-bottom: 18px; font-size: 22px; }
+        .right-bar p { margin: 10px 0; font-size: 15px; }
+        @media (max-width: 1300px) { .right-bar { display: none; } }
+
+        /* ================================================================
+           = 3D页脚 (实验5新增)
+           ================================================================ */
+        .footer-3d {
+            width: 100%; background: rgba(5,5,20,0.9);
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            padding: 45px 0; margin-top: 60px; text-align: center;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        .social-icons { display: flex; gap: 35px; justify-content: center; margin-bottom: 25px; }
+        .social-icon {
+            width: 60px; height: 60px; background: rgba(255,255,255,0.08);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 28px; color: #aaa; transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), color 0.3s, background 0.3s, box-shadow 0.3s;
+        }
+        .social-icon:hover {
+            transform: rotateY(360deg) scale(1.3);
+            color: #00a2ff; background: rgba(0,162,255,0.2);
+            box-shadow: 0 0 30px rgba(0,162,255,0.6);
+        }
+        .copyright {
+            color: #888; font-size: 16px; letter-spacing: 1px;
+            animation: fadeInUp 2.5s ease infinite alternate;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0.3; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
 </head>
 <body>
-    <!-- 头部导航（3D过渡） -->
+    <!-- ==================== 头部导航 ==================== -->
     <header id="header">
         <div class="logo">
             <img src="img/logo.png" alt="logo" onerror="this.style.display='none'">
@@ -17,124 +395,190 @@
             <ul>
                 <li><a href="#">首页</a></li>
                 <li><a href="#">3D书架</a></li>
-                <li><a href="#">热门环形</a></li>
-                <li><a href="#">新书上架</a></li>
+                <li><a href="#">环形书廊</a></li>
+                <li><a href="#">新书上市</a></li>
             </ul>
         </nav>
         <div class="header-actions">
-            <button class="icon-btn"><i class="fas fa-search"></i></button>
-            <button class="icon-btn"><i class="fas fa-shopping-cart"></i></button>
+            <button class="icon-btn" title="搜索"><i class="fas fa-search"></i></button>
+            <button class="icon-btn" title="购物车"><i class="fas fa-shopping-cart"></i></button>
             <div id="userArea">
                 <button class="login-btn-top" onclick="openDialog('login')">登 录</button>
             </div>
         </div>
     </header>
 
-    <!-- 登录注册遮罩 -->
+    <!-- ==================== 登录/注册遮罩 ==================== -->
     <div class="mask" id="mask">
         <div class="dialog-box" id="loginDialog">
             <button class="close-btn" onclick="closeDialog()">&times;</button>
             <h2>用户登录</h2>
             <div class="form-group"><label>用户名</label><input type="text" id="loginUsername" placeholder="请输入用户名"></div>
             <div class="form-group"><label>密码</label><input type="password" id="loginPassword" placeholder="请输入密码"></div>
-            <p class="error-msg" id="loginError"></p><p class="success-msg" id="loginSuccess"></p>
+            <p class="error-msg" id="loginError">用户名或密码错误</p>
+            <p class="success-msg" id="loginSuccess">登录成功！</p>
             <button class="submit-btn" onclick="handleLogin()">登 录</button>
             <p class="switch-text">还没有账号？<a onclick="switchToRegister()">去注册</a></p>
         </div>
-        <div class="dialog-box" id="registerDialog" style="display:none;">
+        <div class="dialog-box" id="registerDialog" style="display: none;">
             <button class="close-btn" onclick="closeDialog()">&times;</button>
             <h2>用户注册</h2>
-            <div class="form-group"><label>用户名</label><input type="text" id="regUsername"></div>
-            <div class="form-group"><label>密码</label><input type="password" id="regPassword"></div>
-            <div class="form-group"><label>确认密码</label><input type="password" id="regConfirm"></div>
-            <p class="error-msg" id="regError"></p><p class="success-msg" id="regSuccess"></p>
+            <div class="form-group"><label>用户名</label><input type="text" id="regUsername" placeholder="请输入用户名"></div>
+            <div class="form-group"><label>密码</label><input type="password" id="regPassword" placeholder="请输入密码"></div>
+            <div class="form-group"><label>确认密码</label><input type="password" id="regConfirm" placeholder="请再次输入密码"></div>
+            <p class="error-msg" id="regError">注册失败，请检查输入</p>
+            <p class="success-msg" id="regSuccess">注册成功！</p>
             <button class="submit-btn" onclick="handleRegister()">注 册</button>
             <p class="switch-text">已有账号？<a onclick="switchToLogin()">去登录</a></p>
         </div>
     </div>
 
+    <!-- ==================== 主体内容 ==================== -->
     <div class="container">
         <aside class="left-bar">
             <h3>图书分类</h3>
             <ul>
                 <li><a href="#">术数</a></li>
-                <li><a href="#">科技</a></li>
+                <li><a href="#">科技计算机</a></li>
                 <li><a href="#">物理学</a></li>
+                <li><a href="#">文学小说</a></li>
+                <li><a href="#">历史哲学</a></li>
             </ul>
         </aside>
 
         <main class="main-content">
-            <!-- 3D环形图书展示 -->
-            <section class="carousel-3d-section">
-                <div class="ring-container">
-                    <!-- 8张图片环形分布，从img4开始 -->
-                    <div class="ring-item"><img src="img/img4.jpg" alt="书1" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22140%22 height=%22180%22%3E%3Crect fill=%22%23444%22 width=%22140%22 height=%22180%22/%3E%3Ctext x=%2230%22 y=%22100%22 fill=%22%23ccc%22%3Eimg4%3C/text%3E%3C/svg%3E'"></div>
-                    <div class="ring-item"><img src="img/img5.jpg" alt="书2" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22140%22 height=%22180%22%3E%3Crect fill=%22%23444%22 width=%22140%22 height=%22180%22/%3E%3Ctext x=%2230%22 y=%22100%22 fill=%22%23ccc%22%3Eimg5%3C/text%3E%3C/svg%3E'"></div>
-                    <div class="ring-item"><img src="img/img6.jpg" alt="书3" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22140%22 height=%22180%22%3E%3Crect fill=%22%23444%22 width=%22140%22 height=%22180%22/%3E%3Ctext x=%2230%22 y=%22100%22 fill=%22%23ccc%22%3Eimg6%3C/text%3E%3C/svg%3E'"></div>
-                    <div class="ring-item"><img src="img/img7.jpg" alt="书4" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22140%22 height=%22180%22%3E%3Crect fill=%22%23444%22 width=%22140%22 height=%22180%22/%3E%3Ctext x=%2230%22 y=%22100%22 fill=%22%23ccc%22%3Eimg7%3C/text%3E%3C/svg%3E'"></div>
-                    <div class="ring-item"><img src="img/img8.jpg" alt="书5" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22140%22 height=%22180%22%3E%3Crect fill=%22%23444%22 width=%22140%22 height=%22180%22/%3E%3Ctext x=%2230%22 y=%22100%22 fill=%22%23ccc%22%3Eimg8%3C/text%3E%3C/svg%3E'"></div>
-                    <div class="ring-item"><img src="img/img9.jpg" alt="书6" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22140%22 height=%22180%22%3E%3Crect fill=%22%23444%22 width=%22140%22 height=%22180%22/%3E%3Ctext x=%2230%22 y=%22100%22 fill=%22%23ccc%22%3Eimg9%3C/text%3E%3C/svg%3E'"></div>
-                    <div class="ring-item"><img src="img/img10.jpg" alt="书7" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22140%22 height=%22180%22%3E%3Crect fill=%22%23444%22 width=%22140%22 height=%22180%22/%3E%3Ctext x=%2230%22 y=%22100%22 fill=%22%23ccc%22%3Eimg10%3C/text%3E%3C/svg%3E'"></div>
-                    <div class="ring-item"><img src="img/img11.jpg" alt="书8" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22140%22 height=%22180%22%3E%3Crect fill=%22%23444%22 width=%22140%22 height=%22180%22/%3E%3Ctext x=%2230%22 y=%22100%22 fill=%22%23ccc%22%3Eimg11%3C/text%3E%3C/svg%3E'"></div>
+            <!-- 轮播图（实验4保留） -->
+            <section class="carousel-section">
+                <div class="carousel-container">
+                    <div class="carousel-slide slide1">📖 经典文学 · 沉浸阅读</div>
+                    <div class="carousel-slide slide2">💻 科技前沿 · 计算机科学</div>
+                    <div class="carousel-slide slide3">🔬 物理世界 · 探索未知</div>
                 </div>
             </section>
 
-            <!-- 3D翻转图书卡片 -->
+            <!-- 3D环形图书展示（12本） -->
+            <section class="ring-section">
+                <div class="ring-container">
+                    <!-- 图片从 img6.jpg 开始，共12张 -->
+                    <div class="ring-item"><img src="img/img6.jpg" alt="书1" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22130%22 height=%22170%22%3E%3Crect fill=%22%23444%22 width=%22130%22 height=%22170%22/%3E%3Ctext x=%2225%22 y=%2295%22 fill=%22%23ccc%22%3Eimg6%3C/text%3E%3C/svg%3E'"></div>
+                    <div class="ring-item"><img src="img/img7.jpg" alt="书2" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22130%22 height=%22170%22%3E%3Crect fill=%22%23444%22 width=%22130%22 height=%22170%22/%3E%3Ctext x=%2225%22 y=%2295%22 fill=%22%23ccc%22%3Eimg7%3C/text%3E%3C/svg%3E'"></div>
+                    <div class="ring-item"><img src="img/img8.jpg" alt="书3" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22130%22 height=%22170%22%3E%3Crect fill=%22%23444%22 width=%22130%22 height=%22170%22/%3E%3Ctext x=%2225%22 y=%2295%22 fill=%22%23ccc%22%3Eimg8%3C/text%3E%3C/svg%3E'"></div>
+                    <div class="ring-item"><img src="img/img9.jpg" alt="书4" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22130%22 height=%22170%22%3E%3Crect fill=%22%23444%22 width=%22130%22 height=%22170%22/%3E%3Ctext x=%2225%22 y=%2295%22 fill=%22%23ccc%22%3Eimg9%3C/text%3E%3C/svg%3E'"></div>
+                    <div class="ring-item"><img src="img/img10.jpg" alt="书5" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22130%22 height=%22170%22%3E%3Crect fill=%22%23444%22 width=%22130%22 height=%22170%22/%3E%3Ctext x=%2225%22 y=%2295%22 fill=%22%23ccc%22%3Eimg10%3C/text%3E%3C/svg%3E'"></div>
+                    <div class="ring-item"><img src="img/img11.jpg" alt="书6" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22130%22 height=%22170%22%3E%3Crect fill=%22%23444%22 width=%22130%22 height=%22170%22/%3E%3Ctext x=%2225%22 y=%2295%22 fill=%22%23ccc%22%3Eimg11%3C/text%3E%3C/svg%3E'"></div>
+                    <div class="ring-item"><img src="img/img12.jpg" alt="书7" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22130%22 height=%22170%22%3E%3Crect fill=%22%23444%22 width=%22130%22 height=%22170%22/%3E%3Ctext x=%2225%22 y=%2295%22 fill=%22%23ccc%22%3Eimg12%3C/text%3E%3C/svg%3E'"></div>
+                    <div class="ring-item"><img src="img/img13.jpg" alt="书8" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22130%22 height=%22170%22%3E%3Crect fill=%22%23444%22 width=%22130%22 height=%22170%22/%3E%3Ctext x=%2225%22 y=%2295%22 fill=%22%23ccc%22%3Eimg13%3C/text%3E%3C/svg%3E'"></div>
+                    <div class="ring-item"><img src="img/img14.jpg" alt="书9" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22130%22 height=%22170%22%3E%3Crect fill=%22%23444%22 width=%22130%22 height=%22170%22/%3E%3Ctext x=%2225%22 y=%2295%22 fill=%22%23ccc%22%3Eimg14%3C/text%3E%3C/svg%3E'"></div>
+                    <div class="ring-item"><img src="img/img15.jpg" alt="书10" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22130%22 height=%22170%22%3E%3Crect fill=%22%23444%22 width=%22130%22 height=%22170%22/%3E%3Ctext x=%2225%22 y=%2295%22 fill=%22%23ccc%22%3Eimg15%3C/text%3E%3C/svg%3E'"></div>
+                    <div class="ring-item"><img src="img/img16.jpg" alt="书11" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22130%22 height=%22170%22%3E%3Crect fill=%22%23444%22 width=%22130%22 height=%22170%22/%3E%3Ctext x=%2225%22 y=%2295%22 fill=%22%23ccc%22%3Eimg16%3C/text%3E%3C/svg%3E'"></div>
+                    <div class="ring-item"><img src="img/img17.jpg" alt="书12" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22130%22 height=%22170%22%3E%3Crect fill=%22%23444%22 width=%22130%22 height=%22170%22/%3E%3Ctext x=%2225%22 y=%2295%22 fill=%22%23ccc%22%3Eimg17%3C/text%3E%3C/svg%3E'"></div>
+                </div>
+            </section>
+
+            <!-- 3D翻转卡片（5张，替代原图书展示） -->
             <section class="flip-section">
+                <h3>📚 3D 图书卡片</h3>
                 <div class="flip-card">
                     <div class="flip-card-inner">
-                        <div class="flip-card-front"><img src="img/img1.jpg" alt="高数" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22280%22%3E%3Crect fill=%22%234a6fa5%22 width=%22200%22 height=%22280%22/%3E%3Ctext x=%2250%22 y=%22150%22 fill=%22white%22%3E高数%3C/text%3E%3C/svg%3E'"></div>
+                        <div class="flip-card-front"><img src="img/img1.jpg" alt="高数" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22290%22%3E%3Crect fill=%22%234a6fa5%22 width=%22200%22 height=%22290%22/%3E%3Ctext x=%2240%22 y=%22160%22 fill=%22white%22%3E高数%3C/text%3E%3C/svg%3E'"></div>
                         <div class="flip-card-back">
                             <h4>《高等数学》</h4>
                             <p>作者：冯本熠</p>
                             <div class="rating">★★★★☆ 4.5</div>
                             <div class="price">¥19.9</div>
-                            <p class="summary">经典数学教材，深入浅出讲解微积分、线性代数等核心内容。</p>
+                            <p class="summary">经典高数教材，涵盖微积分、线性代数等核心内容。</p>
                         </div>
                     </div>
                 </div>
                 <div class="flip-card">
                     <div class="flip-card-inner">
-                        <div class="flip-card-front"><img src="img/img2.jpg" alt="网页设计" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22280%22%3E%3Crect fill=%22%236b4e71%22 width=%22200%22 height=%22280%22/%3E%3Ctext x=%2230%22 y=%22150%22 fill=%22white%22%3E网页设计%3C/text%3E%3C/svg%3E'"></div>
+                        <div class="flip-card-front"><img src="img/img2.jpg" alt="网页设计" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22290%22%3E%3Crect fill=%22%236b4e71%22 width=%22200%22 height=%22290%22/%3E%3Ctext x=%2230%22 y=%22160%22 fill=%22white%22%3E网页%3C/text%3E%3C/svg%3E'"></div>
                         <div class="flip-card-back">
                             <h4>《网页设计基础》</h4>
                             <p>作者：陈德睿</p>
                             <div class="rating">★★★★☆ 4.3</div>
                             <div class="price">¥39.9</div>
-                            <p class="summary">从HTML到CSS，全面掌握现代前端开发必备技能。</p>
+                            <p class="summary">HTML/CSS/JS前端入门实战，保姆级教程。</p>
                         </div>
                     </div>
                 </div>
                 <div class="flip-card">
                     <div class="flip-card-inner">
-                        <div class="flip-card-front"><img src="img/img3.jpg" alt="大学物理" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22280%22%3E%3Crect fill=%22%233d5a5c%22 width=%22200%22 height=%22280%22/%3E%3Ctext x=%2230%22 y=%22150%22 fill=%22white%22%3E大学物理%3C/text%3E%3C/svg%3E'"></div>
+                        <div class="flip-card-front"><img src="img/img3.jpg" alt="大学物理" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22290%22%3E%3Crect fill=%22%233d5a5c%22 width=%22200%22 height=%22290%22/%3E%3Ctext x=%2230%22 y=%22160%22 fill=%22white%22%3E物理%3C/text%3E%3C/svg%3E'"></div>
                         <div class="flip-card-back">
                             <h4>《大学物理学》</h4>
                             <p>作者：褚红赛</p>
                             <div class="rating">★★★★★ 4.8</div>
                             <div class="price">¥59.9</div>
-                            <p class="summary">涵盖力学、电磁学、光学等基础物理，适合本科学习。</p>
+                            <p class="summary">力学、电磁学、光学，物理专业必修教材。</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="flip-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front"><img src="img/img4.jpg" alt="Python编程" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22290%22%3E%3Crect fill=%22%2336696d%22 width=%22200%22 height=%22290%22/%3E%3Ctext x=%2240%22 y=%22160%22 fill=%22white%22%3EPython%3C/text%3E%3C/svg%3E'"></div>
+                        <div class="flip-card-back">
+                            <h4>《Python从入门到实践》</h4>
+                            <p>作者：李强</p>
+                            <div class="rating">★★★★★ 4.9</div>
+                            <div class="price">¥49.9</div>
+                            <p class="summary">零基础学Python，附大量实战项目，轻松掌握。</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="flip-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front"><img src="img/img5.jpg" alt="算法导论" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22290%22%3E%3Crect fill=%22%236a4e4e%22 width=%22200%22 height=%22290%22/%3E%3Ctext x=%2240%22 y=%22160%22 fill=%22white%22%3E算法%3C/text%3E%3C/svg%3E'"></div>
+                        <div class="flip-card-back">
+                            <h4>《算法导论》</h4>
+                            <p>作者：Thomas H.C.</p>
+                            <div class="rating">★★★★☆ 4.7</div>
+                            <div class="price">¥89.9</div>
+                            <p class="summary">MIT经典算法教材，程序员必读。</p>
                         </div>
                     </div>
                 </div>
             </section>
 
+            <!-- 热门推荐（实验4动效保留） -->
+            <section class="hot-recommend">
+                <h3>🔥 热门推荐 · 悬停有惊喜</h3>
+                <div class="hot-list">
+                    <div class="hot-item">
+                        <img src="img/img6.jpg" alt="JS高级" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22220%22 height=%22200%22%3E%3Crect fill=%22%23555%22 width=%22220%22 height=%22200%22/%3E%3Ctext x=%2270%22 y=%22110%22 fill=%22%23ccc%22%3E无图%3C/text%3E%3C/svg%3E'">
+                        <p>《JavaScript高级程序设计》</p><small>前端必读经典</small>
+                    </div>
+                    <div class="hot-item">
+                        <img src="img/img7.jpg" alt="Python进阶" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22220%22 height=%22200%22%3E%3Crect fill=%22%23555%22 width=%22220%22 height=%22200%22/%3E%3Ctext x=%2270%22 y=%22110%22 fill=%22%23ccc%22%3E无图%3C/text%3E%3C/svg%3E'">
+                        <p>《流畅的Python》</p><small>进阶必看</small>
+                    </div>
+                    <div class="hot-item">
+                        <img src="img/img8.jpg" alt="设计模式" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22220%22 height=%22200%22%3E%3Crect fill=%22%23555%22 width=%22220%22 height=%22200%22/%3E%3Ctext x=%2270%22 y=%22110%22 fill=%22%23ccc%22%3E无图%3C/text%3E%3C/svg%3E'">
+                        <p>《设计模式》</p><small>可复用软件</small>
+                    </div>
+                </div>
+            </section>
+
             <!-- 新书上市表格 -->
-            <section class="new-book">
-                <h3>📚 新书上市</h3>
-                <table>
+            <section class="new-book-section">
+                <h3>📗 新书上市</h3>
+                <table class="new-book-table">
                     <tr><th>书名</th><th>作者</th><th>价格</th></tr>
                     <tr><td>《高数》</td><td>冯本熠</td><td>¥19.9</td></tr>
                     <tr><td>《网页设计基础与实践》</td><td>陈德睿</td><td>¥39.9</td></tr>
                     <tr><td>《大学物理学》</td><td>褚红赛</td><td>¥59.9</td></tr>
+                    <tr><td>《Python从入门到实践》</td><td>李强</td><td>¥49.9</td></tr>
+                    <tr><td>《算法导论》</td><td>Thomas H.C.</td><td>¥89.9</td></tr>
                 </table>
             </section>
         </main>
 
+        <!-- 右侧促销栏 -->
         <aside class="right-bar">
             <h3>促销信息</h3>
             <p>满99减20</p>
             <p>新书8折</p>
+            <p>会员更享叠加优惠</p>
         </aside>
     </div>
 
@@ -144,13 +588,15 @@
             <a href="#" class="social-icon"><i class="fab fa-weixin"></i></a>
             <a href="#" class="social-icon"><i class="fab fa-weibo"></i></a>
             <a href="#" class="social-icon"><i class="fab fa-github"></i></a>
+            <a href="#" class="social-icon"><i class="fab fa-bilibili"></i></a>
             <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
         </div>
-        <div class="copyright">© 2025 数字图书展销平台 · 3D实验室 版权所有</div>
+        <div class="copyright">© 2025 数字图书展销平台 · 3D交互实验室 版权所有</div>
     </footer>
 
+    <!-- ==================== JavaScript：本地存储登录注册 ==================== -->
     <script>
-        // ========== 对话框逻辑（与实验3相同） ==========
+        // ========== 对话框控制 ==========
         function openDialog(type) {
             document.getElementById('mask').classList.add('show');
             if (type === 'login') {
@@ -162,69 +608,177 @@
             }
             clearMessages();
         }
-        function closeDialog() { document.getElementById('mask').classList.remove('show'); clearMessages(); clearInputs(); }
-        function switchToRegister() { document.getElementById('loginDialog').style.display = 'none'; document.getElementById('registerDialog').style.display = 'block'; clearMessages(); clearInputs(); }
-        function switchToLogin() { document.getElementById('registerDialog').style.display = 'none'; document.getElementById('loginDialog').style.display = 'block'; clearMessages(); clearInputs(); }
-        function clearMessages() { ['loginError','loginSuccess','regError','regSuccess'].forEach(id => document.getElementById(id).style.display='none'); }
-        function clearInputs() { ['loginUsername','loginPassword','regUsername','regPassword','regConfirm'].forEach(id => document.getElementById(id).value=''); }
+        function closeDialog() {
+            document.getElementById('mask').classList.remove('show');
+            clearMessages();
+            clearInputs();
+        }
+        function switchToRegister() {
+            document.getElementById('loginDialog').style.display = 'none';
+            document.getElementById('registerDialog').style.display = 'block';
+            clearMessages();
+            clearInputs();
+        }
+        function switchToLogin() {
+            document.getElementById('registerDialog').style.display = 'none';
+            document.getElementById('loginDialog').style.display = 'block';
+            clearMessages();
+            clearInputs();
+        }
+        function clearMessages() {
+            ['loginError','loginSuccess','regError','regSuccess'].forEach(id => {
+                document.getElementById(id).style.display = 'none';
+            });
+        }
+        function clearInputs() {
+            ['loginUsername','loginPassword','regUsername','regPassword','regConfirm'].forEach(id => {
+                document.getElementById(id).value = '';
+            });
+        }
 
-        // 本地存储
-        function getUsers() { return JSON.parse(localStorage.getItem('book_users') || '{}'); }
-        function saveUsers(users) { localStorage.setItem('book_users', JSON.stringify(users)); }
-        function setCurrentUser(username) { localStorage.setItem('book_current_user', username); }
-        function getCurrentUser() { return localStorage.getItem('book_current_user'); }
-        function logout() { localStorage.removeItem('book_current_user'); updateUserArea(); }
+        // ========== HTML5 本地存储操作 ==========
+        function getUsers() {
+            return JSON.parse(localStorage.getItem('bookstore_users') || '{}');
+        }
+        function saveUsers(users) {
+            localStorage.setItem('bookstore_users', JSON.stringify(users));
+        }
+        function setCurrentUser(username) {
+            localStorage.setItem('bookstore_current_user', username);
+        }
+        function getCurrentUser() {
+            return localStorage.getItem('bookstore_current_user');
+        }
+        function logout() {
+            localStorage.removeItem('bookstore_current_user');
+            updateUserArea();
+        }
 
+        // ========== 注册处理 ==========
         function handleRegister() {
             const username = document.getElementById('regUsername').value.trim();
             const password = document.getElementById('regPassword').value;
             const confirm = document.getElementById('regConfirm').value;
-            document.getElementById('regError').style.display='none';
-            document.getElementById('regSuccess').style.display='none';
-            if (!username || !password || !confirm) { document.getElementById('regError').textContent='请填写所有字段'; document.getElementById('regError').style.display='block'; return; }
-            if (username.length<3) { document.getElementById('regError').textContent='用户名至少3个字符'; document.getElementById('regError').style.display='block'; return; }
-            if (password.length<4) { document.getElementById('regError').textContent='密码至少4位'; document.getElementById('regError').style.display='block'; return; }
-            if (password !== confirm) { document.getElementById('regError').textContent='两次密码不一致'; document.getElementById('regError').style.display='block'; return; }
+
+            document.getElementById('regError').style.display = 'none';
+            document.getElementById('regSuccess').style.display = 'none';
+
+            if (!username || !password || !confirm) {
+                document.getElementById('regError').textContent = '请填写所有字段';
+                document.getElementById('regError').style.display = 'block';
+                return;
+            }
+            if (username.length < 3) {
+                document.getElementById('regError').textContent = '用户名至少3个字符';
+                document.getElementById('regError').style.display = 'block';
+                return;
+            }
+            if (password.length < 4) {
+                document.getElementById('regError').textContent = '密码至少4位';
+                document.getElementById('regError').style.display = 'block';
+                return;
+            }
+            if (password !== confirm) {
+                document.getElementById('regError').textContent = '两次密码不一致';
+                document.getElementById('regError').style.display = 'block';
+                return;
+            }
+
             const users = getUsers();
-            if (users[username]) { document.getElementById('regError').textContent='用户名已存在'; document.getElementById('regError').style.display='block'; return; }
-            users[username] = { password, time: new Date().toISOString() };
+            if (users[username]) {
+                document.getElementById('regError').textContent = '用户名已存在，请更换';
+                document.getElementById('regError').style.display = 'block';
+                return;
+            }
+
+            users[username] = {
+                password: password,
+                registerTime: new Date().toISOString()
+            };
             saveUsers(users);
-            document.getElementById('regSuccess').textContent='注册成功！即将跳转登录';
-            document.getElementById('regSuccess').style.display='block';
-            setTimeout(() => { switchToLogin(); document.getElementById('loginUsername').value = username; }, 1500);
+
+            document.getElementById('regSuccess').textContent = '注册成功！即将跳转登录';
+            document.getElementById('regSuccess').style.display = 'block';
+            setTimeout(() => {
+                switchToLogin();
+                document.getElementById('loginUsername').value = username;
+            }, 1500);
         }
 
+        // ========== 登录处理 ==========
         function handleLogin() {
             const username = document.getElementById('loginUsername').value.trim();
             const password = document.getElementById('loginPassword').value;
-            document.getElementById('loginError').style.display='none';
-            document.getElementById('loginSuccess').style.display='none';
-            if (!username || !password) { document.getElementById('loginError').textContent='请输入用户名和密码'; document.getElementById('loginError').style.display='block'; return; }
+
+            document.getElementById('loginError').style.display = 'none';
+            document.getElementById('loginSuccess').style.display = 'none';
+
+            if (!username || !password) {
+                document.getElementById('loginError').textContent = '请输入用户名和密码';
+                document.getElementById('loginError').style.display = 'block';
+                return;
+            }
+
             const users = getUsers();
-            if (!users[username]) { document.getElementById('loginError').textContent='用户不存在'; document.getElementById('loginError').style.display='block'; return; }
-            if (users[username].password !== password) { document.getElementById('loginError').textContent='密码错误'; document.getElementById('loginError').style.display='block'; return; }
-            document.getElementById('loginSuccess').textContent='登录成功！欢迎，'+username;
-            document.getElementById('loginSuccess').style.display='block';
+            if (!users[username]) {
+                document.getElementById('loginError').textContent = '用户不存在，请先注册';
+                document.getElementById('loginError').style.display = 'block';
+                return;
+            }
+
+            if (users[username].password !== password) {
+                document.getElementById('loginError').textContent = '密码错误，请重试';
+                document.getElementById('loginError').style.display = 'block';
+                return;
+            }
+
+            document.getElementById('loginSuccess').textContent = '登录成功！欢迎回来，' + username;
+            document.getElementById('loginSuccess').style.display = 'block';
             setCurrentUser(username);
-            setTimeout(() => { closeDialog(); updateUserArea(); }, 1000);
+
+            setTimeout(() => {
+                closeDialog();
+                updateUserArea();
+            }, 1000);
         }
 
         function updateUserArea() {
             const userArea = document.getElementById('userArea');
             const currentUser = getCurrentUser();
             if (currentUser) {
-                userArea.innerHTML = `<div class="user-info-top"><span class="user-name">👤 ${currentUser}</span><button class="logout-btn" onclick="logout()">退出</button></div>`;
+                userArea.innerHTML = `
+                    <div class="user-info-top">
+                        <span class="user-name">👤 ${currentUser}</span>
+                        <button class="logout-btn" onclick="logout()">退出登录</button>
+                    </div>
+                `;
             } else {
-                userArea.innerHTML = `<button class="login-btn-top" onclick="openDialog('login')">登 录</button>`;
+                userArea.innerHTML = `
+                    <button class="login-btn-top" onclick="openDialog('login')">登 录</button>
+                `;
             }
         }
 
-        document.getElementById('mask').addEventListener('click', e => { if (e.target === document.getElementById('mask')) closeDialog(); });
-        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDialog(); });
+        // 点击遮罩关闭
+        document.getElementById('mask').addEventListener('click', function(e) {
+            if (e.target === this) closeDialog();
+        });
+        // ESC关闭
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeDialog();
+        });
+        // 页面加载初始化
         window.onload = function() {
             updateUserArea();
+            // 预置测试账号
             const users = getUsers();
-            if (!users['chs2007']) { users['chs2007'] = { password: '2007', time: new Date().toISOString() }; saveUsers(users); }
+            if (!users['chs2007']) {
+                users['chs2007'] = {
+                    password: '2007',
+                    registerTime: new Date().toISOString()
+                };
+                saveUsers(users);
+            }
         };
     </script>
 </body>
